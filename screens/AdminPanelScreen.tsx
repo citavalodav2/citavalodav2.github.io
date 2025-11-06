@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Story, Slide, Language } from '../types';
 import { LogoutIcon } from '../components/icons';
-// @ts-ignore - Assuming User type will be available from a library like Firebase
 import { User } from 'firebase/auth';
 
 interface AdminPanelScreenProps {
@@ -14,7 +13,7 @@ interface AdminPanelScreenProps {
 const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({ stories, user, onAddStory, onLogout }) => {
   const [title, setTitle] = useState('');
   const [coverImage, setCoverImage] = useState('');
-  const [slides, setSlides] = useState<Omit<Slide, 'id'>[]>([]);
+  const [slides, setSlides] = useState<Slide[]>([]);
 
   const handleAddSlide = () => {
     setSlides([...slides, { image: '', text: { en: '', lv: '', ru: '' } }]);

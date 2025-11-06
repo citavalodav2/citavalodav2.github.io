@@ -1,6 +1,5 @@
 import React from 'react';
 import { Story } from '../types';
-// @ts-ignore - Assuming User type will be available from a library like Firebase
 import { User } from 'firebase/auth';
 
 interface AudiobookCardProps {
