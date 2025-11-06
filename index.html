@@ -1,205 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StorySpark</title>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Citavaloda - Audiobook for Kids</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <script>
-        // --- Your Project Configuration ---
-        
-        // Your Project ID, used for database paths
-        const __app_id = "citavalodav2";
-
-        // Your complete Firebase Config object
-        const __firebase_config = {
-          apiKey: "AIzaSyBLW9WaKPqSXSbcnrP86hdn3e35sA8jtxo",
-          authDomain: "citavalodav2.firebaseapp.com",
-          projectId: "citavalodav2",
-          storageBucket: "citavalodav2.appspot.com",
-          messagingSenderId: "307657094221",
-          appId: "1:307657094221:web:631cf8413eecdb30ce9804" // <-- Your App ID is now inserted!
-        };
-
-        // ------------------------------------
-    </script>
-
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Tailwind 'slate-50' */
-        }
-
-        /* Subtle Ken Burns effect for the slide image */
-        @keyframes kenburns {
-            0% {
-                transform: scale(1) translate(0, 0);
-            }
-            100% {
-                transform: scale(1.08) translate(-2%, 1%);
-            }
-        }
-        .kenburns {
-            animation: kenburns 25s ease-in-out infinite alternate;
-        }
-
-        /* Gentle pulse/glow for primary action buttons */
-        @keyframes pulse-glow {
-            0%, 100% {
-                opacity: 1;
-                box-shadow: 0 0 8px rgba(59, 130, 246, 0); /* blue-500 */
-            }
-            50% {
-                opacity: 0.95;
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-            }
-        }
-        .pulse-glow {
-            animation: pulse-glow 2.5s ease-in-out infinite;
-        }
-
-        /* Hide scrollbars for the reader view */
-        .reader-view-no-scroll {
-            overflow: hidden;
-        }
-    </style>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'spark-blue': {
-                            light: '#e0f2fe', // sky-100
-                            DEFAULT: '#a8d8ea', // Custom
-                            dark: '#0ea5e9', // sky-500
-                        },
-                        'spark-green': {
-                            light: '#d1fae5', // emerald-100
-                            DEFAULT: '#a8e6cf', // Custom
-                            dark: '#10b981', // emerald-500
-                        },
-                        'spark-yellow': {
-                            light: '#fef3c7', // amber-100
-                            DEFAULT: '#ffd3b6', // Custom
-                            dark: '#f59e0b', // amber-500
-                        },
-                        'spark-text': '#334155', // slate-700
-                    },
-                }
-            }
-        }
-    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+  }
+}
+</script>
 </head>
-<body class="antialiased text-spark-text">
-
-    <div id="app-container" class="min-h-screen">
-
-        <div id="loading-view" class="fixed inset-0 flex items-center justify-center bg-slate-50 z-50">
-            <svg class="animate-spin h-10 w-10 text-spark-blue-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-        </div>
-
-        <div id="login-view" class="hidden min-h-screen flex items-center justify-center bg-spark-blue-light p-4">
-            <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl text-center max-w-md w-full">
-                <h1 class="text-5xl font-bold text-spark-blue-dark mb-3">StorySpark</h1>
-                <p class="text-lg text-slate-600 mb-10">A calm, focused reader for your child.</p>
-                <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-full font-semibold text-lg shadow-lg flex items-center justify-center gap-3 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691c-1.229 2.254-1.956 4.819-1.956 7.615c0 2.796.727 5.361 1.956 7.615l-5.657 5.657C.638 32.713 0 28.5 0 24c0-4.5.638-8.713 2.649-12.319l5.657 2.999z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-5.657-5.657C30.01 35.156 27.208 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-5.657 5.657C9.86 42.023 16.44 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l5.657 5.657C39.998 36.43 44 30.8 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-                    Sign In with Google
-                </button>
-            </div>
-        </div>
-
-        <div id="home-view" class="hidden min-h-screen bg-slate-50">
-            <header class="bg-white shadow-sm sticky top-0 z-10">
-                <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between items-center h-20">
-                        <div class="flex-shrink-0 flex items-center">
-                            <h1 class="text-3xl font-bold text-spark-blue-dark">StorySpark</h1>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span id="user-name" class="text-slate-600 hidden md:block"></span>
-                            <button id="admin-link" class="hidden bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-full font-semibold text-sm transition-all">Teacher's Desk</button>
-                            <button id="logout-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 px-4 rounded-full font-semibold text-sm transition-all">Logout</button>
-                        </div>
-                    </div>
-                </nav>
-            </header>
-
-            <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <h2 class="text-3xl font-semibold text-spark-text mb-6">Your Bookshelf</h2>
-                <div id="bookshelf-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                    </div>
-            </main>
-        </div>
-
-        <div id="reader-view" class="hidden fixed inset-0 bg-spark-blue-light z-20 flex flex-col p-4 md:p-8 transition-opacity duration-500 opacity-0">
-            
-            <div class="flex-shrink-0 flex justify-between items-center mb-4">
-                <button id="reader-home-btn" class="bg-white/70 backdrop-blur-sm hover:bg-white text-spark-text p-3 rounded-full shadow-md transition-all transform hover:scale-110">
-                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                </button>
-            </div>
-
-            <div class="flex-grow flex flex-col items-center justify-center overflow-hidden">
-                <div id="slide-image-container" class="w-full max-w-4xl aspect-video bg-gray-200 rounded-2xl shadow-xl overflow-hidden mb-6 transition-opacity duration-300">
-                    <img id="slide-image" src="" alt="Story slide" class="w-full h-full object-cover">
-                </div>
-
-                <div id="slide-text-container" class="w-full max-w-4xl transition-opacity duration-300">
-                    <p id="slide-text" class="text-3xl md:text-5xl font-semibold text-spark-text text-center p-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg">
-                        Loading...
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex-shrink-0 flex items-center justify-center gap-6 md:gap-12 p-6">
-                <button id="prev-slide-btn" class="bg-white text-spark-blue-dark p-4 rounded-full shadow-lg transition-all transform hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed">
-                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                </button>
-                <button id="speak-btn" class="bg-spark-green-dark text-white p-6 rounded-full shadow-xl transition-all transform hover:scale-110 pulse-glow">
-                    <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.38a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
-                </button>
-                <button id="next-slide-btn" class="bg-white text-spark-blue-dark p-4 rounded-full shadow-lg transition-all transform hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed pulse-glow">
-                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                </button>
-            </div>
-        </div>
-
-        <div id="admin-view" class="hidden min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-semibold text-spark-text">Teacher's Desk</h2>
-                    <button id="admin-home-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 px-4 rounded-full font-semibold text-sm transition-all">Back to Bookshelf</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-semibold mb-4">Create New Book</h3>
-                        <form id="create-book-form" class="space-y-4">
-                            <div>
-                                <label for="book-title" class="block text-sm font-medium text-slate-700">Book Title</label>
-                                <input type="text" id="book-title" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-spark-blue-dark focus:border-spark-blue-dark sm:text-sm">
-                            </div>
-                            <div>
-                                <label for="book-cover" class="block text-sm font-medium text-slate-700">Cover Image URL</label>
-                                <input type="url" id="book-cover" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-spark-blue-dark focus:border-spark-blue-dark sm:text-sm">
-                            </div>
-                            <button type="submit" class="w
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
